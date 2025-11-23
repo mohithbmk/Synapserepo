@@ -180,6 +180,29 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/13_join_data')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "nyc_taxi/Discovery"
+				},
+				"content": {
+					"query": "use nyc_taxi_discovery\n\n--identify no of trips made from each borough(i.e pickup location)--\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'trip_data_green_parquet/year=2020/month=01/',\n        FORMAT = 'PARQUET',\n        DATA_SOURCE = 'nyc_taxi_data_raw'\n    ) AS [result]\n--- use this line (WHERE PULocationID is NULL) to check no null values present in pickuplocation id\n--developing the join condion using openrowset function\n\nSELECT taxi_zone.borough, COUNT(1) as no_of_trips\nFROM \n    OPENROWSET( \n                 BULK 'trip_data_green_parquet/year=2020/month=01',\n                 FORMAT = 'PARQUET',\n                 DATA_SOURCE = 'nyc_taxi_data_raw'\n                 )AS trip_data\n                    JOIN----joining trip data with taxizone data here\n                        OPENROWSET(\n                                    BULK 'https://bmksynapsedemodl.dfs.core.windows.net/nyc-taxi-data/raw/taxi_zone_without_header.csv',\n                                    FORMAT = 'CSV',\n                                    PARSER_VERSION = '2.0',\n                                    FIRST_ROW = 2\n                                    )\n                                     WITH(\n                                        location_id SMALLINT 1,\n                                        borough VARCHAR(15) 2,\n                                        zone VARCHAR(50) 3,\n                                        service_zone VARCHAR(15) 4       \n                                        ) AS taxi_zone\n                    ON  trip_data.PULocationID = taxi_zone.location_id\nGROUP BY taxi_zone.borough\nORDER BY no_of_trips;\n\n\n\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "nyc_taxi_discovery",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/1_exploreTaxixone')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
@@ -341,7 +364,7 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/8_explore_tiipdata_greentaxi')]",
+			"name": "[concat(parameters('workspaceName'), '/8_explore_tripdata_greentaxi')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
@@ -387,7 +410,7 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/13')]",
+			"name": "[concat(parameters('workspaceName'), '/14_transformations')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
