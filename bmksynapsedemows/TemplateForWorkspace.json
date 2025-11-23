@@ -157,6 +157,29 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/12_data_quality_checks')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "nyc_taxi/Discovery"
+				},
+				"content": {
+					"query": "use nyc_taxi_discovery\n----identifing the data quality issues in trip total amount\n\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'trip_data_green_parquet/year=2020/month=01/*.parquet',\n        DATA_SOURCE = 'nyc_taxi_data_raw',\n        FORMAT = 'PARQUET'\n    ) AS trip_data\n\nSELECT\n    MIN(total_amount) as min_total_amount,\n    max(total_amount) as max_total_amount,\n    AVG(total_amount) as avu_total_amount,\n    COUNT(1) as total_no_of_records,\n    count(total_amount) AS not_null_total_no_of_records\nFROM\n    OPENROWSET(\n        BULK 'trip_data_green_parquet/year=2020/month=01/*.parquet',\n        DATA_SOURCE = 'nyc_taxi_data_raw',\n        FORMAT = 'PARQUET'\n    ) AS trip_data\n--- for all the files in that folder\nSELECT\n    MIN(total_amount) as min_total_amount,\n    max(total_amount) as max_total_amount,\n    AVG(total_amount) as avu_total_amount,\n    COUNT(1) as total_no_of_records,\n    count(total_amount) AS not_null_total_no_of_records\nFROM\n    OPENROWSET(\n        BULK 'trip_data_green_parquet/year=*/month=*/*.parquet',\n        DATA_SOURCE = 'nyc_taxi_data_raw',\n        FORMAT = 'PARQUET'\n    ) AS trip_data\n    \n---------------------------trying to rectify the negative total amount----\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'trip_data_green_parquet/year=2020/month=01',\n        DATA_SOURCE = 'nyc_taxi_data_raw',\n        FORMAT = 'PARQUET'\n    ) AS trip_data\nWHERE total_amount < 0\n\n\nSELECT payment_type, COUNT(1) as no_of_payments\nFROM\n    OPENROWSET(\n        BULK 'trip_data_green_parquet/year=2020/month=01/*.parquet',\n        DATA_SOURCE = 'nyc_taxi_data_raw',\n        FORMAT = 'PARQUET'\n    ) AS result\n--WHERE total_amount < 0\nGROUP BY payment_type\nORDER BY payment_type;\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "nyc_taxi_discovery",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/1_exploreTaxixone')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
@@ -358,6 +381,23 @@
 						"poolName": "Built-in"
 					},
 					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/13')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "nyc_taxi/Discovery"
+				},
+				"content": {
+					"metadata": {
+						"language": "sql"
+					}
 				},
 				"type": "SqlQuery"
 			},
