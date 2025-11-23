@@ -303,7 +303,7 @@
 					"name": "nyc_taxi/ldw(logical datawarehouse)"
 				},
 				"content": {
-					"query": "use nyc_taxi_ldw\n\nCREATE EXTERNAL DATA SOURCE nyc_taxi_src \nWITH\n(\n LOCATION ='https://bmksynapsedemodl.dfs.core.windows.net/nyc-taxi-data',\n\n)",
+					"query": "use nyc_taxi_ldw\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'nyc_taxi_src')\n    CREATE EXTERNAL DATA SOURCE nyc_taxi_src \n    WITH\n    (\n    LOCATION ='https://bmksynapsedemodl.dfs.core.windows.net/nyc-taxi-data',\n\n    )",
 					"metadata": {
 						"language": "sql"
 					},
