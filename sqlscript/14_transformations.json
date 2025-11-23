@@ -1,0 +1,20 @@
+{
+	"name": "14_transformations",
+	"properties": {
+		"folder": {
+			"name": "nyc_taxi/Discovery"
+		},
+		"content": {
+			"query": "use nyc_taxi_discovery\n----no of trips made by duration in hours--\nSELECT \n    TOP 100 *\n    FROM \n    OPENROWSET(  BULK 'trip_data_green_parquet/**',\n                 FORMAT = 'PARQUET',\n                 DATA_SOURCE = 'nyc_taxi_data_raw'\n    )AS trip_data\n----using TSQL  DATEDIFF function to find the difference between the pickup and drop\nSELECT TOP 100\n    DATEDIFF(MINUTE,lpep_dropoff_datetime,lpep_pickup_datetime)/60 as from_hour,\n    (DATEDIFF(MINUTE,lpep_dropoff_datetime,lpep_pickup_datetime)/60)+1 as to_hour,\n    COUNT(1) as no_of_trips\n    FROM \n    OPENROWSET(  BULK 'trip_data_green_parquet/**',\n                 FORMAT = 'PARQUET',\n                 DATA_SOURCE = 'nyc_taxi_data_raw'\n    )AS trip_data\nGROUP BY DATEDIFF(MINUTE,lpep_dropoff_datetime,lpep_pickup_datetime)/60,\n    (DATEDIFF(MINUTE,lpep_dropoff_datetime,lpep_pickup_datetime)/60)+1\nORDER BY DATEDIFF(MINUTE,lpep_dropoff_datetime,lpep_pickup_datetime)/60,\n    (DATEDIFF(MINUTE,lpep_dropoff_datetime,lpep_pickup_datetime)/60)+1;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "nyc_taxi_discovery",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
