@@ -5,12 +5,12 @@
 			"name": "nyc_taxi/ldw(logical datawarehouse)"
 		},
 		"content": {
-			"query": "",
+			"query": "USE nyc_taxi_ldw\n\nCREATE EXTERNAL FILE FORMAT csv_file_format\nWITH\n(  \n    FORMAT_TYPE = DELIMITEDTEXT,\n    FORMAT_OPTIONS  (\n            FIELD_TERMINATOR= ',',\n             STRING_DELIMITER = '\"',\n             First_Row = 2,\n             USE_TYPE_DEFAULT = FALSE,\n            Encoding ='UTF8',\n            PARSER_VERSION = '2.0'\n    )\n)",
 			"metadata": {
 				"language": "sql"
 			},
 			"currentConnection": {
-				"databaseName": "master",
+				"databaseName": "nyc_taxi_ldw",
 				"poolName": "Built-in"
 			},
 			"resultLimit": 5000
