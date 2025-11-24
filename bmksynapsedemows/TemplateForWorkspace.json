@@ -441,7 +441,7 @@
 					"name": "nyc_taxi/ldw(logical datawarehouse)"
 				},
 				"content": {
-					"query": "use nyc_taxi_ldw\n-- creating views--\nCREATE VIEW bronze.vw_rate_code\nAS\nSELECT rate_code_id, rate_code\n    FROM OPENROWSET(\n        BULK 'raw/rate_code.json',\n        DATA_SOURCE = 'nyc_taxi_src',\n        FORMAT ='CSV',\n        PARSER_VERSION ='1.0',\n        FIELDTERMINATOR = '0x0b',\n        FIELDQUOTE = '0x0b',\n        ROWTERMINATOR = '0x0b'\n    )\n    with(\n        jsondoc NVARCHAR(MAX)\n    ) \n    AS rate_code\n    CROSS APPLY OPENJSON(jsondoc)\n    WITH(\n        rate_code_id TINYINT,\n        rate_code VARCHAR(20) \n    );",
+					"query": "use nyc_taxi_ldw\nGO\n-- creating views--\nCREATE VIEW bronze.vw_rate_code\nAS\nSELECT rate_code_id, rate_code\n    FROM OPENROWSET(\n        BULK 'raw/rate_code.json',\n        DATA_SOURCE = 'nyc_taxi_src',\n        FORMAT ='CSV',\n        PARSER_VERSION ='1.0',\n        FIELDTERMINATOR = '0x0b',\n        FIELDQUOTE = '0x0b',\n        ROWTERMINATOR = '0x0b'\n    )\n    with(\n        jsondoc NVARCHAR(MAX)\n    ) \n    AS rate_code\n    CROSS APPLY OPENJSON(jsondoc)\n    WITH\n    (\n        rate_code_id TINYINT,\n        rate_code VARCHAR(20) \n    )\nGO",
 					"metadata": {
 						"language": "sql"
 					},
