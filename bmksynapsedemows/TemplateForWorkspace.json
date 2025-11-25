@@ -226,6 +226,29 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/12_silver_trip_data_green')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "nyc_taxi/ldw(logical datawarehouse)"
+				},
+				"content": {
+					"query": "USE nyc_taxi_ldw\n\nIF OBJECT_ID('silver.trip_data_green') IS NOT NULL\n    DROP EXTERNAL TABLE silver.trip_data_green\nGO\n CREATE EXTERNAL TABLE silver.trip_data_green\n                  WITH(\n                        LOCATION = 'silver/trip_data_green',\n                        DATA_SOURCE = nyc_taxi_src,\n                        FILE_FORMAT = parquet_file_format,                      \n                    ) \nAS\nSELECT * FROM bronze.trip_data_green_csv;\n\nSELECT * FROM silver.trip_data_green;",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "nyc_taxi_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/13_join_data')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
