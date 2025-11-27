@@ -44,64 +44,78 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "delete_silver_taxi_zone_folder",
-						"type": "Delete",
+						"name": "ForEach folder path",
+						"type": "ForEach",
 						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
 						"userProperties": [],
 						"typeProperties": {
-							"dataset": {
-								"referenceName": "Ds_nyc_taxi_data_dynamic",
-								"type": "DatasetReference",
-								"parameters": {
-									"p_folder_path": {
-										"value": "@variables('v_folder_path')",
-										"type": "Expression"
+							"items": {
+								"value": "@variables('v_folder_path_usp_name_array')",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "delete_silver_taxi_zone_folder",
+									"type": "Delete",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "Ds_nyc_taxi_data_dynamic",
+											"type": "DatasetReference",
+											"parameters": {
+												"p_folder_path": {
+													"value": "@item().folder_path",
+													"type": "Expression"
+												}
+											}
+										},
+										"enableLogging": false,
+										"storeSettings": {
+											"type": "AzureBlobFSReadSettings",
+											"recursive": true,
+											"enablePartitionDiscovery": false
+										}
+									}
+								},
+								{
+									"name": "create silver taxi zone table",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "delete_silver_taxi_zone_folder",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": {
+											"value": "@item().usp_name",
+											"type": "Expression"
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "ls_serverless_sql_pool_db_nyc_taxi_ldw",
+										"type": "LinkedServiceReference"
 									}
 								}
-							},
-							"enableLogging": false,
-							"storeSettings": {
-								"type": "AzureBlobFSReadSettings",
-								"recursive": true,
-								"enablePartitionDiscovery": false
-							}
-						}
-					},
-					{
-						"name": "create silver taxi zone table",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "delete_silver_taxi_zone_folder",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": {
-								"value": "@variables('v_usp_name')",
-								"type": "Expression"
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "ls_serverless_sql_pool_db_nyc_taxi_ldw",
-							"type": "LinkedServiceReference"
+							]
 						}
 					}
 				],
@@ -116,6 +130,35 @@
 					"v_usp_name": {
 						"type": "String",
 						"defaultValue": "silver.usp_silver_taxi_zone"
+					},
+					"v_folder_path_usp_name_array": {
+						"type": "Array",
+						"defaultValue": [
+							{
+								"folder_path": "silver/calendar",
+								"usp_name": "silver.usp_silver_calendar"
+							},
+							{
+								"folder_path": "silver/taxi_zone",
+								"usp_name": "silver.usp_silver_taxi_zone"
+							},
+							{
+								"folder_path": "silver/trip_type",
+								"usp_name": "silver.usp_silver_trip_type"
+							},
+							{
+								"folder_path": "silver/vendor",
+								"usp_name": "silver.usp_silver_vendor"
+							},
+							{
+								"folder_path": "silver/rate_code",
+								"usp_name": "silver.usp_silver_rate_code"
+							},
+							{
+								"folder_path": "silver/payment_type",
+								"usp_name": "silver.usp_silver_payment_type"
+							}
+						]
 					}
 				},
 				"annotations": []
@@ -1024,6 +1067,29 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/4_usp_create_silver_calendar')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "nyc_taxi/USP"
+				},
+				"content": {
+					"query": "USE nyc_taxi_ldw\nGO\n\n\nCREATE OR ALTER PROCEDURE silver.usp_silver_calendar\nAS\nBEGIN\n    IF OBJECT_ID('silver.calendar') IS NOT NULL\n        DROP EXTERNAL TABLE silver.calendar;\n    \n    CREATE EXTERNAL TABLE silver.calendar\n                    WITH(\n                            LOCATION = 'silver/calendar',\n                            DATA_SOURCE = nyc_taxi_src,\n                            FILE_FORMAT = parquet_file_format                      \n                        ) \n    AS\n    SELECT * FROM bronze.calendar\n\nEND",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "nyc_taxi_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/5_create_bronze_views')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
@@ -1061,6 +1127,29 @@
 					},
 					"currentConnection": {
 						"databaseName": "nyc_taxi_discovery",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/5_usp_create_trip_type')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "nyc_taxi/USP"
+				},
+				"content": {
+					"query": "USE nyc_taxi_ldw\nGO\n\nCREATE OR ALTER PROCEDURE silver.usp_silver_trip_type\nAS\nBEGIN\n        IF OBJECT_ID('silver.trip_type') IS NOT NULL\n            DROP EXTERNAL TABLE silver.trip_type;\n\n        CREATE EXTERNAL TABLE silver.trip_type\n                        WITH(\n                                LOCATION = 'silver/trip_type',\n                                DATA_SOURCE = nyc_taxi_src,\n                                FILE_FORMAT = parquet_file_format                    \n                            ) \n        AS\n        SELECT * FROM bronze.trip_type\nEND\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "nyc_taxi_ldw",
 						"poolName": "Built-in"
 					},
 					"resultLimit": 5000
@@ -1116,6 +1205,29 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/6_usp_create_silver_vendor')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "nyc_taxi/USP"
+				},
+				"content": {
+					"query": "USE nyc_taxi_ldw\nGO\n\n\nCREATE OR ALTER PROCEDURE silver.usp_silver_vendor\nAS\nBEGIN\n        IF OBJECT_ID('silver.vendor') IS NOT NULL\n            DROP EXTERNAL TABLE silver.vendor;\n        \n        CREATE EXTERNAL TABLE silver.vendor\n                        WITH(\n                                LOCATION = 'silver/vendor',\n                                DATA_SOURCE = nyc_taxi_src,\n                                FILE_FORMAT = parquet_file_format                      \n                            ) \n        AS\n        SELECT * FROM bronze.vendor\nEND\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "nyc_taxi_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/7_create_silver_calendar')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
@@ -1162,6 +1274,29 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/7_usp_create_silver_rate_code')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "nyc_taxi/USP"
+				},
+				"content": {
+					"query": "USE nyc_taxi_ldw\nGO\n\nCREATE OR ALTER PROCEDURE silver.usp_silver_rate_code\nAS\nBEGIN\n    IF OBJECT_ID('silver.rate_code') IS NOT NULL\n     DROP EXTERNAL TABLE silver.rate_code;\n        CREATE EXTERNAL TABLE silver.rate_code\n                        WITH(\n                             LOCATION = 'silver/rate_code',\n                             DATA_SOURCE = nyc_taxi_src,\n                             FILE_FORMAT = parquet_file_format,                      \n                            ) \n                                AS\n                                SELECT * \n                                FROM OPENROWSET(\n                                        BULK 'raw/rate_code.json',\n                                        DATA_SOURCE = 'nyc_taxi_src',\n                                        FORMAT ='CSV',\n                                        PARSER_VERSION ='1.0',\n                                        FIELDTERMINATOR = '0x0b',\n                                        FIELDQUOTE = '0x0b',\n                                        ROWTERMINATOR = '0x0b'\n                                                )\n                                    with(\n                                        jsondoc NVARCHAR(MAX)\n                                        ) \n                                    AS rate_code\n                                    CROSS APPLY OPENJSON(jsondoc)\n                                    WITH\n                                     (\n                                        rate_code_id TINYINT,\n                                        rate_code VARCHAR(20) \n                                        )\n        END\n\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "nyc_taxi_ldw",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/8_create_trip_type')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
@@ -1199,6 +1334,29 @@
 					},
 					"currentConnection": {
 						"databaseName": "nyc_taxi_discovery",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/8_usp_create_silver_payment_type')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "nyc_taxi/USP"
+				},
+				"content": {
+					"query": "USE nyc_taxi_ldw\nGO\n\nCREATE OR ALTER PROCEDURE silver.usp_silver_payment_type\nAS\nBEGIN\n\n\nIF OBJECT_ID('silver.payment_type') IS NOT NULL\n    DROP EXTERNAL TABLE silver.payment_type;\n CREATE EXTERNAL TABLE silver.payment_type\n                  WITH(\n                        LOCATION = 'silver/payment_type',\n                        DATA_SOURCE = nyc_taxi_src,\n                        FILE_FORMAT = parquet_file_format                    \n                    ) \nAS\nSELECT payment_type, payment_type_desc_value\n    FROM OPENROWSET(\n        BULK 'raw/payment_type_array.json',\n        DATA_SOURCE = 'nyc_taxi_src',\n        FORMAT ='CSV',\n        PARSER_VERSION ='1.0',\n        FIELDTERMINATOR = '0x0b',\n        FIELDQUOTE = '0x0b',\n        ROWTERMINATOR = '0x0a'\n    )\n    WITH(\n        jsondoc NVARCHAR(MAX)\n    ) \n    AS payment_type\n    CROSS APPLY OPENJSON(jsondoc)\n    WITH (\n        payment_type SMALLINT,\n        payment_type_desc NVARCHAR(MAX) AS JSON\n\n    )\n    CROSS APPLY OPENJSON(payment_type_desc)\n    WITH(\n        sub_type SMALLINT,\n        payment_type_desc_value VARCHAR(20) '$.value'\n    )\nEND",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "nyc_taxi_ldw",
 						"poolName": "Built-in"
 					},
 					"resultLimit": 5000
