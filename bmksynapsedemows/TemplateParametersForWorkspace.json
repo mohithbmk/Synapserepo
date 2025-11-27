@@ -13,6 +13,9 @@
 		},
 		"nyc_tlc_green_sasUri": {
 			"value": ""
+		},
+		"Ls_bmksynapsedemodl_properties_typeProperties_url": {
+			"value": "https://bmksynapsedemodl.dfs.core.windows.net/"
 		}
 	}
 }

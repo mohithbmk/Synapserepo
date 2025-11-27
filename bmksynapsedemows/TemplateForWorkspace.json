@@ -19,6 +19,10 @@
 		"nyc_tlc_green_sasUri": {
 			"type": "secureString",
 			"metadata": "Secure string for 'sasUri' of 'nyc_tlc_green'"
+		},
+		"Ls_bmksynapsedemodl_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://bmksynapsedemodl.dfs.core.windows.net/"
 		}
 	},
 	"variables": {
@@ -845,6 +849,25 @@
 				"type": "SqlQuery"
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Ls_bmksynapsedemodl')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('Ls_bmksynapsedemodl_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
 		}
 	]
 }
