@@ -8,14 +8,14 @@
 		"bmksynapsedemows-WorkspaceDefaultSqlServer_connectionString": {
 			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:bmksynapsedemows.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
 		},
+		"Ls_bmksynapsedemodl_properties_typeProperties_url": {
+			"value": "https://bmksynapsedemodl.dfs.core.windows.net/"
+		},
 		"bmksynapsedemows-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"value": "https://bmksynapsedemodl.dfs.core.windows.net"
 		},
 		"nyc_tlc_green_sasUri": {
 			"value": ""
-		},
-		"Ls_bmksynapsedemodl_properties_typeProperties_url": {
-			"value": "https://bmksynapsedemodl.dfs.core.windows.net/"
 		}
 	}
 }
