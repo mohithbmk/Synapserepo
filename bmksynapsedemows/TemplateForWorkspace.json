@@ -20,6 +20,14 @@
 			"type": "string",
 			"defaultValue": "https://bmksynapsedemodl.dfs.core.windows.net"
 		},
+		"ls_serverless_sql_pool_db_nyc_taxi_ldw_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "tcp:bmksynapsedemows-ondemand.sql.azuresynapse.net,1433"
+		},
+		"ls_serverless_sql_pool_db_nyc_taxi_ldw_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "nyc_taxi_ldw"
+		},
 		"nyc_tlc_green_sasUri": {
 			"type": "secureString",
 			"metadata": "Secure string for 'sasUri' of 'nyc_tlc_green'"
@@ -29,6 +37,48 @@
 		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/pl_create_silver_taxi')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "delete_silver_taxi_zone_folder",
+						"type": "Delete",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "Ds_bmksynapsedemodl",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"enableLogging": false,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/Ds_bmksynapsedemodl')]"
+			]
+		},
 		{
 			"name": "[concat(parameters('workspaceName'), '/Ds_bmksynapsedemodl')]",
 			"type": "Microsoft.Synapse/workspaces/datasets",
@@ -123,6 +173,29 @@
 				"type": "AzureBlobFS",
 				"typeProperties": {
 					"url": "[parameters('bmksynapsedemows-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ls_serverless_sql_pool_db_nyc_taxi_ldw')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"server": "[parameters('ls_serverless_sql_pool_db_nyc_taxi_ldw_properties_typeProperties_server')]",
+					"database": "[parameters('ls_serverless_sql_pool_db_nyc_taxi_ldw_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SystemAssignedManagedIdentity"
 				},
 				"connectVia": {
 					"referenceName": "AutoResolveIntegrationRuntime",
