@@ -413,6 +413,9 @@
 				"policy": {
 					"elapsedTimeMetric": {}
 				},
+				"folder": {
+					"name": "Demo"
+				},
 				"annotations": []
 			},
 			"dependsOn": [
@@ -482,6 +485,9 @@
 				],
 				"policy": {
 					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Demo"
 				},
 				"annotations": []
 			},
