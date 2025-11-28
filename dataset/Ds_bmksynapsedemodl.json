@@ -5,6 +5,9 @@
 			"referenceName": "Ls_bmksynapsedemodl",
 			"type": "LinkedServiceReference"
 		},
+		"folder": {
+			"name": "Demo"
+		},
 		"annotations": [],
 		"type": "Parquet",
 		"typeProperties": {
