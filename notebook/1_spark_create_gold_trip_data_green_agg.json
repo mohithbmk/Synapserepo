@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "50d2286a-1100-460d-99dd-d779acba8500"
+				"spark.autotune.trackingId": "88890c46-3be3-42a5-a435-e85fba518839"
 			}
 		},
 		"metadata": {
@@ -96,7 +96,7 @@
 					"silver_folder_path = 'abfss://nyc-taxi-data@synapsecoursedl.dfs.core.windows.net/silver'\n",
 					"gold_folder_path = 'abfss://nyc-taxi-data@synapsecoursedl.dfs.core.windows.net/gold'"
 				],
-				"execution_count": 3
+				"execution_count": 1
 			},
 			{
 				"cell_type": "code",
@@ -115,7 +115,7 @@
 					"#Set the spark config to be able to get the partitioned columns year and month as strings rather than integers\n",
 					"spark.conf.set(\"spark.sql.sources.partitionColumnTypeInference.enabled\", \"false\")"
 				],
-				"execution_count": 4
+				"execution_count": 3
 			},
 			{
 				"cell_type": "code",
@@ -140,9 +140,9 @@
 					"-- Create database to which we are going to write the data\n",
 					"\n",
 					"CREATE DATABASE IF NOT EXISTS nyc_taxi_ldw_spark\n",
-					"LOCATION 'abfss://nyc-taxi-data@synapsecoursedl.dfs.core.windows.net/gold';"
+					"LOCATION 'https://bmksynapsedemodl.blob.core.windows.net/nyc-taxi-data/gold';"
 				],
-				"execution_count": 2
+				"execution_count": 5
 			},
 			{
 				"cell_type": "code",
